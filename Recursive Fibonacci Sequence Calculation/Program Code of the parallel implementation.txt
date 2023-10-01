@@ -1,0 +1,45 @@
+#include <stdio.h>
+#include <cuda_runtime.h>
+
+__global__ void fibonacci_kernel(int* result, int n) {
+    int a = 0, b = 1;
+
+    for (int i = 2; i <= n; i++) {
+        int temp = a + b;
+        a = b;
+        b = temp;
+    }
+
+    *result = b;
+}
+
+int main() {
+    int n;
+    printf("Enter a positive integer: ");
+    scanf("%d", &n);
+
+if (n < 0) {
+        printf("Please enter a non-negative integer.\n");
+        return 1;
+    }
+
+    int* d_result;
+    int h_result;
+
+    // Allocate memory on the GPU
+    cudaMalloc((void**)&d_result, sizeof(int));
+
+    // Launch the kernel
+    fibonacci_kernel<<<1, 1>>>(d_result, n);
+
+    // Copy the result back from the GPU
+    cudaMemcpy(&h_result, d_result, sizeof(int), cudaMemcpyDeviceToHost);
+
+    // Free GPU memory
+    cudaFree(d_result);
+
+    printf("Fibonacci(%d) = %d\n", n, h_result);
+
+    return 0;
+}
+
